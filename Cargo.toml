@@ -5,6 +5,7 @@ edition = "2021"
 rust-version = "1.78.0"
 
 description = "Fast modular arithmetic with a fixed modulus"
+repository = "https://github.com/qdot3/fixedmod"
 license = "MIT OR Apache-2.0"
 keywords = ["modular", "arithmetic", "barrett", "no_std"]
 categories = ["algorithms", "no-std"]
