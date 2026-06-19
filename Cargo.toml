@@ -7,10 +7,11 @@ rust-version = "1.78.0"
 description = "Fast modular arithmetic with a fixed modulus"
 repository = "https://github.com/qdot3/fixedmod"
 license = "MIT OR Apache-2.0"
+readme = "README.md"
 keywords = ["modular", "arithmetic", "barrett", "no_std"]
 categories = ["algorithms", "no-std"]
 
-exclude = ["/.vscode", "/note"]
+exclude = ["/.vscode"]
 
 [dependencies]
 
