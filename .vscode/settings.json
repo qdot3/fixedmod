@@ -1,7 +1,9 @@
 {
     "cSpell.words": [
-        "Lemire",
+        "fixeddiv",
         "fixedmod",
+        "Lemire",
+        "precomputes",
         "proptest"
     ]
 }
