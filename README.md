@@ -1,5 +1,10 @@
 # fixedmod
 
+[![Crates.io](https://img.shields.io/crates/v/fixedmod.svg)](https://crates.io/crates/fixedmod)
+[![Documentation](https://docs.rs/fixedmod/badge.svg)](https://docs.rs/fixedmod)
+[![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
+[![Rust](https://img.shields.io/badge/rust-1.78.0%2B-blue.svg?maxAge=3600)](https://github.com/rust-lang/fixedmod)
+
 Fast modular arithmetic for a fixed modulus — no division on the hot path.
 
 ```rust
