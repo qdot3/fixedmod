@@ -330,7 +330,7 @@ mod tests {
     }
 
     proptest! {
-        #![proptest_config(ProptestConfig::with_cases(1 << 13))]
+        #![proptest_config(ProptestConfig::with_cases(1 << 15))]
         #[test]
         fn inv(a: u32, m: NonZeroU32) {
             let modulus = Modulus::new(m);
