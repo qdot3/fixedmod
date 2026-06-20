@@ -242,18 +242,6 @@ impl Modulus {
     /// # Precondition
     ///
     /// `m > 1`
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use core::num::NonZeroU32;
-    /// use fixedmod::Modulus;
-    ///
-    /// let modulus = Modulus::new(NonZeroU32::new(7).unwrap());
-    ///
-    /// assert_eq!(modulus.reduce64_signed(-10), 4);
-    /// assert_eq!(modulus.reduce64_signed(10), 3);
-    /// ```
     #[allow(clippy::inline_always)]
     #[inline(always)]
     const fn reduce64_by_nontrivial(&self, a: u64) -> u32 {
@@ -271,9 +259,27 @@ impl Modulus {
     }
 
     /// Performs reduction `a.rem_euclid(m)` without division.
+    /// 
+    /// # Example
+    ///
+    /// ```
+    /// use core::num::NonZeroU32;
+    /// use fixedmod::Modulus;
+    ///
+    /// let modulus = Modulus::new(NonZeroU32::new(7).unwrap());
+    ///
+    /// assert_eq!(modulus.reduce64_signed(-10), 4);
+    /// assert_eq!(modulus.reduce64_signed(10), 3);
+    /// ```
     pub const fn reduce64_signed(&self, a: i64) -> u32 {
+        // `0 <= rem < m`.
         let rem = self.reduce64_by_nontrivial(a.cast_unsigned());
-        let (rem, borrow) = rem.overflowing_sub(if a.is_negative() { self.offset } else { 0 });
+        // `-m < rem < m`.
+        let (rem, borrow) = rem.overflowing_sub(
+            // when `a < 0`, `a.cast_unsigned() == a + 2^64`
+            if a.is_negative() { self.offset } else { 0 },
+        );
+        // `0 <= rem < m`
         let rem = rem.wrapping_add(if borrow { self.value.get() } else { 0 });
 
         rem & self.mask
