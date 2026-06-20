@@ -69,6 +69,7 @@ impl Modulus {
         let magic = div.wrapping_add(1);
         // `2^64 % m`
         let offset = {
+            #[allow(clippy::cast_possible_truncation)]
             let rem = rem as u32 + 1;
             if rem == value.get() {
                 0
@@ -298,6 +299,7 @@ impl Modulus {
     /// assert_eq!(modulus.reduce64_signed(-10), 4);
     /// assert_eq!(modulus.reduce64_signed(10), 3);
     /// ```
+    #[must_use]
     pub const fn reduce64_signed(&self, a: i64) -> u32 {
         // `0 <= rem < m`.
         let rem = self.reduce64_by_nontrivial(a.cast_unsigned());
