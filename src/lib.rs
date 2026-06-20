@@ -148,13 +148,13 @@ impl Modulus {
     /// When `m == 1`, every integer is congruent to `0` modulo `m`,
     /// so this always returns `Ok(0)`.
     ///
-    /// # Time complexity
-    ///
-    /// O(log `m`)
-    ///
     /// # Errors
     ///
     /// If the modular inverse does not exist, this returns `gcd(a, m)`.
+    /// 
+    /// # Time complexity
+    ///
+    /// O(log `m`)
     ///
     /// # Example
     ///
