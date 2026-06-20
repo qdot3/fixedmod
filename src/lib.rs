@@ -89,6 +89,22 @@ impl Modulus {
         }
     }
 
+    /// Returns the modulus specified at creation.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use core::num::NonZeroU32;
+    /// use fixedmod::Modulus;
+    ///
+    /// let modulus = Modulus::new(NonZeroU32::new(7).unwrap());
+    /// assert_eq!(modulus.value().get(), 7)
+    /// ```
+    #[must_use]
+    pub const fn value(&self) -> NonZeroU32 {
+        self.value
+    }
+
     /// Performs modular multiplication `a * b % m` without division.
     ///
     /// # Example
