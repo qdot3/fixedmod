@@ -39,7 +39,6 @@ pub struct Modulus {
     value: NonZeroU32,
     magic: u64,
     mask: u32,
-    /// `2^64 % m`
     offset: u32,
 }
 
@@ -61,14 +60,26 @@ impl Modulus {
     /// ```
     #[must_use]
     pub const fn new(value: NonZeroU32) -> Self {
+        let (div, rem) = {
+            let m = value.get() as u64;
+            (u64::MAX / m, u64::MAX % m)
+        };
+
         // `ceil(2^64 / m)`
-        let magic = (u64::MAX / value.get() as u64).wrapping_add(1);
+        let magic = div.wrapping_add(1);
+        // `2^64 % m`
+        let offset = {
+            let rem = rem as u32 + 1;
+            if rem == value.get() {
+                0
+            } else {
+                rem
+            }
+        };
         // Equivalent to `if m == 1 { 0 } else { !0 }`, but branchless and faster.
         // When `m == 1`, `magic` overflows to `0` during the computation above.
         // `mask` corrects for this case.
         let mask = 0_u32.wrapping_sub((value.get() > 1) as u32);
-
-        let offset = ((value.get() as u64).wrapping_neg() % (value.get() as u64)) as u32;
 
         Self {
             value,
@@ -259,7 +270,7 @@ impl Modulus {
     }
 
     /// Performs reduction `a.rem_euclid(m)` without division.
-    /// 
+    ///
     /// # Example
     ///
     /// ```
