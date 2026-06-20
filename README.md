@@ -25,15 +25,16 @@ Integer division is slow.
 
 ## API
 
-| Method            | Description                                 | No division |
-| ----------------- | ------------------------------------------- | ----------- |
-| `new(m)`          | precomputes magic numbers                   | N           |
-| `mul_mod(a, b)`   | `a * b % m`                                 | Y           |
-| `pow_mod(a, exp)` | `a.pow(exp) % m`                            | Y           |
-| `reduce32(a)`     | `a % m` for `u32`                           | Y           |
-| `reduce64(a)`     | `a % m` for `u64`                           | Y           |
-| `is_divisible(a)` | `a % m == 0`                                | Y           |
-| `inv(a)`          | modular inverse of `a`, or `Err(gcd(a, m))` | N           |
+| Method               | Description                                 | No division |
+| -------------------- | ------------------------------------------- | ----------- |
+| `new(m)`             | precomputes magic numbers                   | N           |
+| `mul_mod(a, b)`      | `a * b % m`                                 | Y           |
+| `pow_mod(a, exp)`    | `a.pow(exp) % m`                            | Y           |
+| `reduce32(a)`        | `a % m` for `u32`                           | Y           |
+| `reduce64(a)`        | `a % m` for `u64`                           | Y           |
+| `reduce64_signed(a)` | `a.rem_euclid(m)` for `i64`                 | Y           |
+| `is_divisible(a)`    | `a % m == 0`                                | Y           |
+| `inv(a)`             | modular inverse of `a`, or `Err(gcd(a, m))` | N           |
 
 `no_std` compatible.
 

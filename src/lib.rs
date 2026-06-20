@@ -34,11 +34,13 @@
 use core::num::NonZeroU32;
 
 /// Precomputed metadata for fast modular arithmetic.
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct Modulus {
     value: NonZeroU32,
     magic: u64,
     mask: u32,
+    /// `2^64 % m`
+    offset: u32,
 }
 
 impl Modulus {
@@ -66,7 +68,14 @@ impl Modulus {
         // `mask` corrects for this case.
         let mask = 0_u32.wrapping_sub((value.get() > 1) as u32);
 
-        Self { value, magic, mask }
+        let offset = ((value.get() as u64).wrapping_neg() % (value.get() as u64)) as u32;
+
+        Self {
+            value,
+            magic,
+            mask,
+            offset,
+        }
     }
 
     /// Performs modular multiplication `a * b % m` without division.
@@ -127,7 +136,7 @@ impl Modulus {
     ///
     /// When `m == 1`, every integer is congruent to `0` modulo `m`,
     /// so this always returns `Ok(0)`.
-    /// 
+    ///
     /// # Time complexity
     ///
     /// O(log `m`)
@@ -233,6 +242,18 @@ impl Modulus {
     /// # Precondition
     ///
     /// `m > 1`
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use core::num::NonZeroU32;
+    /// use fixedmod::Modulus;
+    ///
+    /// let modulus = Modulus::new(NonZeroU32::new(7).unwrap());
+    ///
+    /// assert_eq!(modulus.reduce64_signed(-10), 4);
+    /// assert_eq!(modulus.reduce64_signed(10), 3);
+    /// ```
     #[allow(clippy::inline_always)]
     #[inline(always)]
     const fn reduce64_by_nontrivial(&self, a: u64) -> u32 {
@@ -242,11 +263,20 @@ impl Modulus {
         let quot = ((a as u128 * self.magic as u128) >> 64) as u64;
         // An underflow here means `quot` overshot the true value by `1`.
         // We correct for this by adding `modulus` back.
-        let (rem, f) = a.overflowing_sub(quot * self.value.get() as u64);
+        let (rem, borrow) = a.overflowing_sub(quot * self.value.get() as u64);
         #[allow(clippy::cast_possible_truncation)]
-        let rem = (rem as u32).wrapping_add(if f { self.value.get() } else { 0 });
+        let rem = (rem as u32).wrapping_add(if borrow { self.value.get() } else { 0 });
 
         rem
+    }
+
+    /// Performs reduction `a.rem_euclid(m)` without division.
+    pub const fn reduce64_signed(&self, a: i64) -> u32 {
+        let rem = self.reduce64_by_nontrivial(a.cast_unsigned());
+        let (rem, borrow) = rem.overflowing_sub(if a.is_negative() { self.offset } else { 0 });
+        let rem = rem.wrapping_add(if borrow { self.value.get() } else { 0 });
+
+        rem & self.mask
     }
 
     /// Returns `true` if `a` is divisible by `m`.
@@ -307,6 +337,16 @@ mod tests {
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(1 << 15))]
         #[test]
+        fn reduce64_signed(a: i64, m: NonZeroU32) {
+            let modulus = Modulus::new(m);
+
+            assert_eq!(modulus.reduce64_signed(a), a.rem_euclid(m.get() as i64) as u32)
+        }
+    }
+
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(1 << 15))]
+        #[test]
         fn is_divisible(a: u32, m: NonZeroU32) {
             let modulus = Modulus::new(m);
 
@@ -358,6 +398,7 @@ mod tests {
 
             assert_eq!(modulus.reduce32(a), 0);
             assert_eq!(modulus.reduce64(b), 0);
+            assert_eq!(modulus.reduce64_signed(b.cast_signed()), 0);
             assert!(modulus.is_divisible(a));
             assert_eq!(modulus.pow_mod(a, exp), 0);
             assert_eq!(modulus.inv(a), Ok(0));
