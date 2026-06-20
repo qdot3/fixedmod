@@ -151,7 +151,7 @@ impl Modulus {
     /// # Errors
     ///
     /// If the modular inverse does not exist, this returns `gcd(a, m)`.
-    /// 
+    ///
     /// # Time complexity
     ///
     /// O(log `m`)
