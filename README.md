@@ -18,7 +18,7 @@ let m = Modulus::new(NonZeroU32::new(7).unwrap());
 assert_eq!(m.mul_mod(5, 6), 2);
 assert_eq!(m.pow_mod(3, 4), 81 % 7);
 assert_eq!(m.reduce32(10), 3);
-assert!(m.is_divisible(14));
+assert!(m.is_zero(14));
 assert_eq!(m.inv(3), Ok(5));
 ```
 
@@ -35,7 +35,7 @@ Integer division is slow.
 | `reduce32(a)`        | `a % m` for `u32`                           | Y           |
 | `reduce64(a)`        | `a % m` for `u64`                           | Y           |
 | `reduce64_signed(a)` | `a.rem_euclid(m as i64)`                    | Y           |
-| `is_divisible(a)`    | `a % m == 0`                                | Y           |
+| `is_zero(a)`         | `a % m == 0`                                | Y           |
 | `inv(a)`             | modular inverse of `a`, or `Err(gcd(a, m))` | N           |
 
 ## License

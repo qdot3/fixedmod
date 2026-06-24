@@ -18,7 +18,7 @@
 //! assert_eq!(modulus.mul_mod(5, 6), 2);   // (5 * 6) % 7
 //! assert_eq!(modulus.reduce32(10), 3);    // 10 % 7
 //! assert_eq!(modulus.reduce64(u64::MAX), (u64::MAX % 7) as u32);
-//! assert!(modulus.is_divisible(14));         // 14 % 7 == 0
+//! assert!(modulus.is_zero(14));         // 14 % 7 == 0
 //! ```
 #![warn(missing_docs)]
 #![warn(unreachable_pub)]
@@ -124,7 +124,7 @@ impl Modulus {
     /// ```
     #[must_use]
     pub const fn mul_mod(&self, a: u32, b: u32) -> u32 {
-        self.reduce64_by_nontrivial(a as u64 * b as u64) & self.mask
+        self.reduce64_nontrivial(a as u64 * b as u64) & self.mask
     }
 
     /// Performs modular exponentiation `a.pow(exp) % m` without overflow or division.
@@ -151,9 +151,9 @@ impl Modulus {
         let mut result = 1;
         while exp > 0 {
             if exp & 1 == 1 {
-                result = self.reduce64_by_nontrivial(result as u64 * a as u64);
+                result = self.reduce64_nontrivial(result as u64 * a as u64);
             }
-            a = self.reduce64_by_nontrivial(a as u64 * a as u64);
+            a = self.reduce64_nontrivial(a as u64 * a as u64);
             exp >>= 1;
         }
 
@@ -264,7 +264,7 @@ impl Modulus {
     pub const fn reduce64(&self, a: u64) -> u32 {
         // When `m == 1`, `magic` is `0` and `rem` is meaningless.
         // `mask` filters this case out, forcing the result to `0`.
-        self.reduce64_by_nontrivial(a) & self.mask
+        self.reduce64_nontrivial(a) & self.mask
     }
 
     /// # Precondition
@@ -272,7 +272,7 @@ impl Modulus {
     /// `m > 1`
     #[allow(clippy::inline_always)]
     #[inline(always)]
-    const fn reduce64_by_nontrivial(&self, a: u64) -> u32 {
+    const fn reduce64_nontrivial(&self, a: u64) -> u32 {
         // Computes `a - a / m * m` for `m > 1`
 
         // `quot` approximates `a / m`, but may be `1` larger than the true value.
@@ -302,7 +302,7 @@ impl Modulus {
     #[must_use]
     pub const fn reduce64_signed(&self, a: i64) -> u32 {
         // `0 <= rem < m`.
-        let rem = self.reduce64_by_nontrivial(a.cast_unsigned());
+        let rem = self.reduce64_nontrivial(a.cast_unsigned());
         // `-m < rem < m`.
         let (rem, borrow) = rem.overflowing_sub(
             // when `a < 0`, `a.cast_unsigned() == a + 2^64`
@@ -324,11 +324,11 @@ impl Modulus {
     ///
     /// let modulus = Modulus::new(NonZeroU32::new(7).unwrap());
     ///
-    /// assert!(modulus.is_divisible(14));
-    /// assert!(!modulus.is_divisible(10));
+    /// assert!(modulus.is_zero(14));
+    /// assert!(!modulus.is_zero(10));
     /// ```
     #[must_use]
-    pub const fn is_divisible(&self, a: u32) -> bool {
+    pub const fn is_zero(&self, a: u32) -> bool {
         // Lemire's divisibility test
 
         // Fractional part of `a / m`.
@@ -385,7 +385,7 @@ mod tests {
         fn is_divisible(a: u32, m: NonZeroU32) {
             let modulus = Modulus::new(m);
 
-            assert_eq!(modulus.is_divisible(a), a % m.get() == 0)
+            assert_eq!(modulus.is_zero(a), a % m.get() == 0)
         }
     }
 
@@ -434,7 +434,7 @@ mod tests {
             assert_eq!(modulus.reduce32(a), 0);
             assert_eq!(modulus.reduce64(b), 0);
             assert_eq!(modulus.reduce64_signed(b.cast_signed()), 0);
-            assert!(modulus.is_divisible(a));
+            assert!(modulus.is_zero(a));
             assert_eq!(modulus.pow_mod(a, exp), 0);
             assert_eq!(modulus.inv(a), Ok(0));
         }
