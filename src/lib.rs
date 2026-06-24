@@ -204,7 +204,7 @@ impl Modulus {
             (u, v) = (rem, u);
             (x, y) = (y - div * x, x);
 
-            debug_assert!((v * y).abs() <= self.value.get() as i64);
+            debug_assert!(x * y <= 0);
         }
         debug_assert!(u == 0 && v > 0);
 
@@ -213,7 +213,6 @@ impl Modulus {
             return Err(v as u32);
         }
 
-        debug_assert!(x * y <= 0);
         y += if y < 0 { self.value.get() as i64 } else { 0 };
         Ok(y as u32)
     }
@@ -314,7 +313,7 @@ impl Modulus {
         rem & self.mask
     }
 
-    /// Returns `true` if `a` is divisible by `m`.
+    /// Performs divisibility test `a == 0 (mod m)`.
     ///
     /// # Example
     ///
